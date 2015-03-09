@@ -8,9 +8,9 @@ class Tivo < ActiveRecord::Base
 
       devices.each do |device|
         parts = device.split(";")
-        name = device[3]
-        host = device[6]
-        ip   = device[7]
+        name = parts[3]
+        host = parts[6]
+        ip   = parts[7]
 
         scope = where(name: name, host: host)
         tivo = scope.first || scope.new
