@@ -1,4 +1,5 @@
 class Tivo < ActiveRecord::Base
+  has_many :videos
 
   def self.reload_devices
     devices = `avahi-browse -p -t -r _tivo-videos._tcp`.split("\n").select {|s| /^=/.match(s) }
@@ -26,6 +27,30 @@ class Tivo < ActiveRecord::Base
     Container.new("/NowPlaying", self)
   end
 
+  def download_queued
+    Tivo::Downloader.setup(ip, mac)
+    videos.queued.by_captured.each do |download|
+      full_filename = File.join(download_dir, download.filename)
+      puts full_filename
+      FileUtils.mkdir_p(File.dirname(full_filename))
+
+      File.open(full_filename, "wb") do |f|
+        Tivo::Downloader.get(download.full_download_url, stream_body: true) do |chunk|
+          f.write(chunk)
+        end
+      end
+
+      s = File.size(full_filename)
+      puts "Expected: #{download.size} Actual: #{s} Diff: #{download.size - s} %: #{(download.size - s) / download.size.to_f}"
+
+      download.downloaded = true
+      download.queued = false
+      download.save
+
+      sleep(5)
+    end
+  end
+
   class Downloader
     include HTTParty
     default_options[:verify] = false
@@ -34,7 +59,7 @@ class Tivo < ActiveRecord::Base
       base_uri "https://#{ip}/TiVoConnect?Command=QueryContainer#{session}"
       digest_auth 'tivo', mac
       resp = get("")
-      cookies.add_cookies(resp.headers['set-cookie'])
+      cookies.add_cookies(resp.headers['set-cookie']) if resp.headers['set-cookie']
     end
 
     def self.session

@@ -1,7 +1,12 @@
 class Video < ActiveRecord::Base
   ILLEGAL_CHARS = /[\/\?\<\>\\\:\*\|\"]/
 
+  belongs_to :tivo
+
   serialize :data, Hash
+
+  scope :queued,      lambda { where(queued: true) }
+  scope :by_captured, lambda { order(:captured_at) }
 
   def self.parse(hash, tivo)
     captured_at = Time.at(hash["Details"]["CaptureDate"].to_i(16))
