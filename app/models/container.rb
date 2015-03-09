@@ -25,7 +25,7 @@ class Container
 
     if hash["Item"]
       raise "Returned items count does not match" unless hash["ItemCount"].to_i == hash["Item"].size
-      hash["Item"].each {|i| @videos << Video.parse(item, @tivo) }
+      hash["Item"].each {|i| @videos << Video.parse(i, @tivo) }
     end
 
     load_container(offset + 50) if @videos.size < @total_items
