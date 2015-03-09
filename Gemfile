@@ -16,4 +16,7 @@ gem 'turbolinks'
 
 gem 'httparty'
 
-gem 'capistrano-rails', group: :development
+group :development do
+  gem 'capistrano-rails'
+  gem 'capistrano-passenger'
+end
