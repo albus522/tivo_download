@@ -22,7 +22,7 @@ class Video < ActiveRecord::Base
   end
 
   def full_download_url
-    links["Content"]["Url"] + "&Format=video/x-tivo-mpeg" + Tivo::Download.session
+    links["Content"]["Url"] + "&Format=video/x-tivo-mpeg" + Tivo::Downloader.session
   end
 
   def size
