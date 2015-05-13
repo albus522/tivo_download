@@ -1,3 +1,5 @@
+require 'io/console'
+
 class Tivo < ActiveRecord::Base
   has_many :videos
 
@@ -25,6 +27,19 @@ class Tivo < ActiveRecord::Base
   def read_now_playing
     Tivo::Downloader.setup(ip, mac)
     Container.new("/NowPlaying", self)
+  end
+
+  def queue_downloads
+    last_downloaded = videos.where(downloaded: true).order(captured_at: :desc).first.captured_at
+    videos.by_captured.where('captured_at > ?', last_downloaded).each do |video|
+      next if !video.until_deleted? || video.protected? || video.ignore? || video.queued?
+      print video.filename
+      print ": (y/n) "
+      respsone = STDIN.getch
+      puts respsone
+
+      video.update_attribute(:queued, true) if respsone == "y"
+    end
   end
 
   def download_queued
