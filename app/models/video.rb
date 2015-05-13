@@ -46,7 +46,7 @@ class Video < ActiveRecord::Base
   end
 
   def folder
-    clean(title) if title.present? && episode.present?
+    clean(title).gsub(/\.+$/, '') if title.present? && episode.present?
   end
 
   def filename
