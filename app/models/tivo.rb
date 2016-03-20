@@ -30,7 +30,7 @@ class Tivo < ActiveRecord::Base
   end
 
   def queue_downloads
-    last_downloaded = videos.where(downloaded: true).order(captured_at: :desc).first.captured_at
+    last_downloaded = videos.where(downloaded: true).order(captured_at: :desc).first.captured_at rescue Time.at(0)
     videos.by_captured.where('captured_at > ?', last_downloaded).each do |video|
       next if !video.until_deleted? || video.protected? || video.ignore? || video.queued?
       print video.filename
